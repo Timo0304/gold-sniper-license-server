@@ -8,7 +8,7 @@ app = Flask(__name__)
 AUTHORIZED_MACHINES = {
     "5404514578303": {
         "bot": "GOLD_SNIPER",
-        "expiry": "2025-01-27"  # YYYY-MM-DD
+        "expiry": "2026-01-27"  # YYYY-MM-DD
     },
     # Add more machines as needed
 }
@@ -40,4 +40,5 @@ def verify():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
