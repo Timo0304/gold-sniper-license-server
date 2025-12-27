@@ -1,30 +1,42 @@
-import os
 from flask import Flask, request, jsonify
+import os
+from datetime import datetime
 
 app = Flask(__name__)
 
+# Format: machine_id: {"bot": bot_name, "expiry": "YYYY-MM-DD"}
 AUTHORIZED_MACHINES = {
-    "GOLD_SNIPER": [
-        "5404514578303"
-    ]
+    "5404514578303": {
+        "bot": "GOLD_SNIPER",
+        "expiry": "2027-01-27"  # YYYY-MM-DD
+    },
+    # Add more machines as needed
 }
 
 @app.route("/verify", methods=["POST"])
 def verify():
     data = request.json
-
     bot = data.get("bot")
     machine = data.get("machine_id")
 
-    if bot in AUTHORIZED_MACHINES and machine in AUTHORIZED_MACHINES[bot]:
-        print("SERVER DEBUG → AUTHORIZED")
+    # Check if machine exists
+    if machine in AUTHORIZED_MACHINES:
+        record = AUTHORIZED_MACHINES[machine]
+
+        # Check bot name
+        if record["bot"] != bot:
+            return jsonify(status="DENIED", reason="Bot name mismatch"), 403
+
+        # Check expiry
+        expiry_date = datetime.strptime(record["expiry"], "%Y-%m-%d")
+        if datetime.now() > expiry_date:
+            return jsonify(status="DENIED", reason="License expired"), 403
+
+        # Authorized
         return jsonify(status="AUTHORIZED")
 
-    print("SERVER DEBUG → DENIED")
-    return jsonify(status="DENIED"), 403
-
+    return jsonify(status="DENIED", reason="Machine not authorized"), 403
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use Render port if available
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
